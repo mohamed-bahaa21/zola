@@ -1,0 +1,30 @@
+{
+  "name": "micro-cookies",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "start": "node ./bin/www",
+    "dev": "node ./bin/www --ENVIRONMENT=development",
+    "prod": "node ./bin/www --ENVIRONMENT=production"
+  },
+  "dependencies": {
+    "cookie-parser": "~1.4.4",
+    "debug": "~2.6.9",
+    "dotenv": "^16.0.3",
+    "ejs": "~2.6.1",
+    "express": "~4.16.1",
+    "express-session": "^1.17.3",
+    "http-errors": "~1.6.3",
+    "json2csv": "^5.0.7",
+    "moment": "^2.29.4",
+    "mongoose": "^6.8.4",
+    "mongoose-findorcreate": "^3.0.0",
+    "morgan": "~1.9.1",
+    "passport": "^0.6.0",
+    "passport-google-oauth20": "^2.0.0",
+    "yargs": "^17.6.2"
+  },
+  "devDependencies": {
+    "cross-env": "^7.0.3"
+  }
+}

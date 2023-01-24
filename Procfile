@@ -1,0 +1,1 @@
+heroku: npm run prod

@@ -1,0 +1,8 @@
+[0mGET / [36m304 [0m11.415 ms - -[0m
+[0mGET /stylesheets/style.css [36m304 [0m2.023 ms - -[0m
+[0mGET /api/trigger_session [36m302 [0m4.000 ms - 46[0m
+[0mGET / [36m304 [0m2.067 ms - -[0m
+[0mGET /stylesheets/style.css [36m304 [0m0.732 ms - -[0m
+[0mGET /api/trigger_session [36m302 [0m7.609 ms - 46[0m
+[0mGET / [36m304 [0m9.533 ms - -[0m
+[0mGET /stylesheets/style.css [36m304 [0m1.644 ms - -[0m
