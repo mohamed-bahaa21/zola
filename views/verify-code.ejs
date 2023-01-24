@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>
+    <%= title %>
+  </title>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet">
+
+  <link rel='stylesheet' href='/stylesheets/style.css' />
+
+</head>
+
+<body>
+
+
+  <div style="width: 100%; height: auto; margin: 0 auto; position: relative; z-index: 3; 
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;">
+    <h1 style="font-weight: 500;">
+      Enter your number.
+    </h1>
+  </div>
+
+  <p style="font-size: 1.4em; line-height: 1.4em; margin: 0; font-weight: 400;">
+    We will send Text Zola <br>
+    to this number.
+  </p>
+
+  <form action="/verify-phone" method="post">
+    <input type="tel" name="phone" id="phone" placeholder="Phone Number">
+    <!-- <button type="submit" class="btn">Continue</button> -->
+    <a href="/verify-code" class="btn">Continue</a>
+
+    <span>􀎡 100% completely private</span>
+  </form>
+
+</body>
+
+</html>

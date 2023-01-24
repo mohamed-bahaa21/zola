@@ -51,6 +51,11 @@ body {
   width: auto;
   height: 100vh;
   margin: 0 auto;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
 }
 
 h1 {
@@ -74,6 +79,20 @@ p {
   margin: 2em;
 }
 
+input {
+  display: inline-block;
+  border-radius: 30px;
+  background-color: var(--theme-bg-color);
+  color: var(--btn-bg);
+  border: 1px solid rgba(206, 205, 206, 0.6);
+  text-decoration: none;
+  padding: 0.75rem 1em;
+  margin-top: 1em;
+  font-weight: 700;
+  font-size: 1.2em;
+  text-align: center;
+}
+
 .btn {
   display: inline-block;
   border-radius: 30px;
@@ -85,4 +104,11 @@ p {
   margin-top: 1em;
   font-weight: 700;
   font-size: 1.2em;
+}
+
+span {
+  display: block;
+  color: var(--theme-color);
+  font-weight: 400;
+  margin-top: 1em;
 }
