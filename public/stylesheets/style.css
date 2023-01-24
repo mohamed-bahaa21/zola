@@ -1,8 +1,88 @@
-body {
-  padding: 50px;
-  font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+@import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap");
+
+* {
+  font-family: "Space Grotesk", sans-serif;
 }
 
-a {
-  color: #00B7FF;
+:root {
+  --theme-bg-color: #1e1e1e;
+  --theme-color: #cecdce;
+  --font-size: 16px;
+  --line-height: 24px;
+  --btn-bg: #eaeaea;
+  --btn-color: #000000;
+}
+
+@media only screen and (max-width: 475px) {
+  .mobile-image {
+    height: 415px !important;
+  }
+}
+
+@media only screen and (max-width: 500px) {
+  html {
+    width: 100vw !important;
+    overflow: hidden;
+  }
+
+  body {
+    /* scale: 2;
+        position: relative;
+        top: 50vh; */
+  }
+}
+
+html {
+  box-sizing: content-box;
+  width: 500px;
+  background-color: var(--theme-bg-color);
+  color: var(--theme-color);
+  text-align: center;
+  margin: 0 auto;
+
+  font-size: var(--font-size);
+  line-height: var(--line-height);
+  overflow: hidden;
+}
+
+body {
+  /* background: linear-gradient(-145deg, #49383b -5%, #2F2224 85%); */
+  background: var(--theme-bg-color);
+  width: auto;
+  height: 100vh;
+  margin: 0 auto;
+}
+
+h1 {
+  font-weight: 400;
+  margin: 1em 0;
+  line-height: 1.2em;
+  font-size: 2em;
+  margin: 1em 0;
+}
+
+.mobile-img {
+  /* position: absolute; */
+  width: 415px;
+  bottom: 0;
+  margin-top: 1em;
+}
+
+p {
+  min-width: 24%;
+  max-width: 100%;
+  margin: 2em;
+}
+
+.btn {
+  display: inline-block;
+  border-radius: 30px;
+  background-color: var(--btn-bg);
+  color: var(--btn-color);
+  border: 1px solid rgba(206, 205, 206, 0.6);
+  text-decoration: none;
+  padding: 0.75rem 5em;
+  margin-top: 1em;
+  font-weight: 700;
+  font-size: 1.2em;
 }
