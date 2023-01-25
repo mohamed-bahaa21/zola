@@ -13,7 +13,6 @@
     rel="stylesheet">
 
   <link rel='stylesheet' href='/stylesheets/style.css' />
-
 </head>
 
 <body>
@@ -24,20 +23,23 @@
     background-repeat: no-repeat;
     background-position: center;">
     <h1 style="font-weight: 500;">
-      Verification code.
+      Sign up for Zola
     </h1>
   </div>
 
-  <p style="font-size: 1.4em; line-height: 1.4em; margin: 0; font-weight: 400;">
-    We sent you a verification code.
-  </p>
+  <div class="card">
+    <ul>
+      <li class="active">􀇻 $4.99/week</li>
+      <li>􀇻 2X cheaper than ChatGPT</li>
+      <li>􀇻 100% completely private</li>
+      <li>􀇻 Cancel Anytime</li>
+    </ul>
+  </div>
 
   <form action="/verify-phone" method="post">
-    <input type="text" name="code" id="code" placeholder="6 digit code">
-    <!-- <button type="submit" class="btn">Continue</button> -->
-    <a href="/signup" class="btn" style="padding: 0.75em 6em;">Send</a>
+    <a href="/soon" class="btn" style="padding: 0.75em 5em; font-weight: 700;"><strong class="dollar-sign">$</strong> 4.99/month</a>
 
-    <span>Didn't get a code? <strong style="text-decoration: underline;">Resend Code</strong></span>
+    <span>􀎡 Powered by Stripe</span>
   </form>
 
 </body>

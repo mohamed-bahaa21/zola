@@ -43,7 +43,7 @@ router.get('/signup', forwardAuthenticated, function (req, res) {
 });
 
 /* GET soon. */
-router.get('/soon', ensureAuthenticated, function (req, res) {
+router.get('/soon', forwardAuthenticated, function (req, res) {
   res.render('soon', { title: 'Zola' });
 });
 
