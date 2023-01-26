@@ -13,6 +13,7 @@ var logger = require('morgan');
 const mongoose = require('mongoose');
 var passport = require('passport')
 const session = require('express-session');
+const MemoryStore = require('memorystore')(session);
 
 // Connect to MongoDB
 mongoose.connect(process.env.MONGODB_URI, {
@@ -32,14 +33,22 @@ if (process.env.ENVIRONMENT == 'production') {
 } else {
   app.use(logger('dev'));
 }
+let bodyParser = require('body-parser')
+app.use('/webhook', bodyParser.raw({ type: 'application/json' }))
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 // app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(session({
-  secret: 'secret',
-  resave: true,
-  saveUninitialized: true
+  saveUninitialized: false,
+  resave: false,
+  secret: 'keyboard cat',
+  cookie: {
+    maxAge: 86400000
+  },
+  store: new MemoryStore({
+    checkPeriod: 86400000
+  }),
 }));
 // Passport middleware
 app.use(passport.initialize());

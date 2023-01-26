@@ -37,7 +37,7 @@ passport.use(new GoogleStrategy({
 const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 
-require('./authenticate');
+require('./google-authenticate');
 
 router.get('/google',
     passport.authenticate('google', { scope: ['profile', 'email'] })

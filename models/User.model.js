@@ -1,18 +1,41 @@
 const mongoose = require('mongoose');
 const findOrCreate = require("mongoose-findorcreate");
 
-// stationID, sessionStartTime, SessionEndTime, cookieCount
 const UserSchema = new mongoose.Schema({
-    googleId: {
+    stripeId: {
         type: String,
-        required: true,
-        unique: true
+        required: false,
     },
-}, {
-    timestamps: true
+    name: {
+        type: String,
+        required: false,
+    },
+    phone: {
+        type: String,
+        required: true
+    },
+    email: {
+        type: String,
+        required: false,
+        unique: true,
+    },
+    billingID: { type: String },
+    plan: { type: String, enum: ['none', 'basic', 'pro'], default: 'none' },
+    hasTrial: { type: Boolean, default: false },
+    endDate: { type: Date, default: null },
+    otp: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'OTP',
+        required: true,
+    },
+    subscriptions: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Subscription'
+    }],
+    createdAt: { type: Date, default: Date.now },
+    updatedAt: { type: Date, default: Date.now }
 });
 
 UserSchema.plugin(findOrCreate);
-
 const User = mongoose.model('User', UserSchema);
 module.exports = User;
