@@ -15,7 +15,7 @@ function hashOTP(otp) {
     });
 }
 
-const generateOTP = async (userID) => {
+const generateOTP = async () => {
     const secret = speakeasy.generateSecret({ length: 20 });
     const token = speakeasy.totp({
         secret: secret.base32,
@@ -26,7 +26,7 @@ const generateOTP = async (userID) => {
     const expires = new Date();
     expires.setMinutes(expires.getMinutes() + 30);
 
-    const new_otp = new OTP({ token: token6digits, expires: expires, user: userID });
+    const new_otp = new OTP({ token: token6digits, expires: expires });
     new_otp.save();
 
     return new_otp;

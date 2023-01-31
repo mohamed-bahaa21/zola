@@ -1,7 +1,7 @@
-const addUser = (User) => ({ phone, billingID, plan, endDate }) => {
+const addUser = (User) => ({ phone, billingID, plan, endDate, otp }) => {
     if (!phone || !billingID || !plan) { throw new Error('Missing Data. Please provide values for phone, billingID, plan') }
 
-    const user = new User({ phone, billingID, plan, endDate })
+    const user = new User({ phone, billingID, plan, endDate, otp })
     return user.save()
 }
 
@@ -10,7 +10,7 @@ const getUsers = (User) => () => {
 }
 
 const getUserByPhone = (User) => async (phone) => {
-    return await User.findOne({ phone })
+    return await User.findOne({ phoneNumber: phone })
 }
 
 const getUserByBillingID = (User) => async (billingID) => {

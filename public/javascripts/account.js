@@ -8,13 +8,13 @@ $(document).ready(function () {
     const manageBillingButton = $('#manage-billing-button')
 
     checkoutButton.click(function () {
-        const product = $("input[name='product']:checked").val()
+        const product = 'basic'
 
         fetch('/checkout', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'email': customer.email
+                'phone': customer.phone
             },
             body: JSON.stringify({
                 product,
@@ -30,7 +30,7 @@ $(document).ready(function () {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                email: customer.email
+                phone: customer.phone
             },
             body: JSON.stringify({
                 customer: customer.billingID

@@ -1,0 +1,51 @@
+{
+    "object": {
+        "id": "plink_1MVSbiIgTE7OgIcMxmXPnPMv",
+        "object": "payment_link",
+        "active": true,
+        "after_completion": {
+            "hosted_confirmation": {
+                "custom_message": null
+            },
+            "type": "hosted_confirmation"
+        },
+        "allow_promotion_codes": false,
+        "application_fee_amount": null,
+        "application_fee_percent": null,
+        "automatic_tax": {
+            "enabled": true
+        },
+        "billing_address_collection": "auto",
+        "consent_collection": {
+            "promotions": "none",
+            "terms_of_service": "none"
+        },
+        "currency": "usd",
+        "custom_text": {
+            "shipping_address": null,
+            "submit": null
+        },
+        "customer_creation": "if_required",
+        "livemode": true,
+        "metadata": {},
+        "on_behalf_of": null,
+        "payment_intent_data": null,
+        "payment_method_collection": "always",
+        "payment_method_types": null,
+        "phone_number_collection": {
+            "enabled": false
+        },
+        "shipping_address_collection": null,
+        "shipping_options": [],
+        "submit_type": "auto",
+        "subscription_data": {
+            "description": null,
+            "trial_period_days": null
+        },
+        "tax_id_collection": {
+            "enabled": false
+        },
+        "transfer_data": null,
+        "url": "https://buy.stripe.com/aEUbMC7OQ9Kk5ag4gi"
+    }
+}

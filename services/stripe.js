@@ -29,7 +29,7 @@ const create_checkout_session = async (customer, price) => {
 };
 
 // create customer
-const create_customer = async (err, phoneNumber) => {
+const create_customer = async (phoneNumber) => {
     // Create a new customer
     const new_customer = stripe.customers.create({
         phone: phoneNumber,

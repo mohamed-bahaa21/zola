@@ -11,6 +11,7 @@ const fields = ['stationID', 'sessionStartTime', 'sessionEndTime', 'cookiesCount
 const User = require('../models/User.model')
 const twilio = require('../services/twilio')
 const stripe = require('../services/stripe')
+const UserService = require('../services/User')
 
 const has_plan = require('../middlewares/has_plan')
 const set_current_user = require('../middlewares/set_currentUser')
@@ -40,20 +41,61 @@ router.get('/verify-phone', forwardAuthenticated, function (req, res) {
 });
 
 /* POST verify phone page. */
-router.post('/verify-phone', forwardAuthenticated, function (req, res) {
+router.post('/verify-phone', forwardAuthenticated, async function (req, res) {
   let phoneNumber = req.body.phoneNumber;
 
-  let new_otp = twilio.generateOTP(user.id);
+  let new_otp = twilio.generateOTP();
   if (new_otp) {
-    const user = User.findOrCreate({ phoneNumber: phoneNumber, otp: new_otp.id })
-    const customer = stripe.create_customer(phoneNumber);
-    let temp_customerID = user.id;
-
-    req.session.temp_customerID = temp_customerID
-    req.session.new_otp = new_otp;
-
     let sendOTP = sendOTP(phoneNumber, new_otp);
     if (!sendOTP) res.redirect('/verify-phone')
+
+    let customer = await UserService.getUserByPhone(phone)
+    // const user = User.findOrCreate({ phoneNumber: phoneNumber, otp: new_otp.id })
+    req.session.temp_customerID = customer.id
+    req.session.new_otp = new_otp;
+    let customerInfo = {}
+
+    if (!customer) {
+      console.log(`phone ${phone} does not exist. Making one. `)
+      try {
+        customerInfo = await stripe.create_customer(phone, new_otp)
+
+        customer = await UserService.addUser({
+          phone: customerInfo.phone,
+          billingID: customerInfo.id,
+          plan: 'none',
+          endDate: null,
+          otp: new_otp.id
+        })
+
+        console.log(`A new Customer signed up and addded to DB. The ID for ${phone} is ${JSON.stringify(customerInfo)}`)
+        console.log(`Customer also added to DB. Information from DB: ${customer}`)
+      } catch (e) {
+        console.log(e)
+        res.status(200).json({ e })
+        return
+      }
+    } else {
+      const isTrialExpired = customer.plan != 'none' && customer.endDate < new Date().getTime()
+
+      if (isTrialExpired) {
+        console.log('trial expired')
+        customer.hasTrial = false
+        customer.save()
+      } else {
+        console.log(
+          'no trial information',
+          customer.hasTrial,
+          customer.plan != 'none',
+          customer.endDate < new Date().getTime()
+        )
+      }
+
+      customerInfo = await stripe.getCustomerByID(customer.billingID)
+      console.log(`The existing ID for ${phone} is ${JSON.stringify(customerInfo)}`)
+    }
+
+    req.session.phone = phone
 
     res.redirect('/verify-code');
   } else {
@@ -65,7 +107,7 @@ router.post('/verify-phone', forwardAuthenticated, function (req, res) {
 /* GET verify code. */
 router.get('/verify-code', forwardAuthenticated, function (req, res) {
   let temp_customerID = req.session.temp_customerID;
-  let new_otp = req.session.new_otp;
+  let new_otp = req.session.new_otp.token;
 
   if (new_otp && temp_customerID) {
     req.session.customerID = temp_customerID;
@@ -164,7 +206,7 @@ app.post('/billing', set_current_user, async (req, res) => {
   const { customer } = req.body
   console.log('customer', customer)
 
-  const session = await Stripe.createBillingSession(customer)
+  const session = await stripe.createBillingSession(customer)
   console.log('session', session)
 
   res.json({ url: session.url })
