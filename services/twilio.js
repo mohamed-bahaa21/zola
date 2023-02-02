@@ -15,7 +15,7 @@ function hashOTP(otp) {
     });
 }
 
-const generateOTP = async () => {
+function generateOTP() {
     const secret = speakeasy.generateSecret({ length: 20 });
     const token = speakeasy.totp({
         secret: secret.base32,
@@ -55,6 +55,57 @@ function verifyOTP(userEnteredToken) {
         token: userEnteredToken6digits
     });
     return verified;
+}
+
+/*
+Store the OTP and the user's phone number in the database, 
+with a flag indicating that the user is unverified.
+
+When the user inputs the OTP, 
+retrieve the stored OTP from the database and compare it with the user's input. 
+If they match, set the user's verification flag to true and log them in.
+*/
+
+const { Configuration, OpenAIApi } = require('openai');
+
+const configuration = new Configuration({
+    apiKey: process.env.OPENAI_API_KEY,
+});
+const openai = new OpenAIApi(configuration);
+
+// const completion = await openai.createCompletion({
+//     model: "text-davinci-003",
+//     prompt: "Hello world",
+// });
+
+async function generateResponse(prompt) {
+    const response = await openai.promised.engines.run({
+        engine: 'davinci',
+        prompt: prompt,
+    });
+
+    return response.choices[0].text;
+}
+
+async function sendMSG(customer_subscription_status, customer_msg, customer_phone) {
+    if (customer_subscription_status) {
+        const response = await generateResponse(customer_msg);
+
+        client.messages.create({
+            body: `${response}`,
+            from: process.env.TWILIO_PHONE_NUMBER,
+            to: customer_phone
+        })
+            .then(message => {
+                console.log(message.sid)
+                return true;
+            })
+            .catch(err => {
+                return false;
+            });
+    } else {
+        return false;
+    }
 }
 
 module.exports = {

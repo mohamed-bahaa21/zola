@@ -7,6 +7,41 @@ let test_numbers = {
     american_express: { number: '378282246310005', cvc: '1234', date: '12/34' }
 }
 
+async function get_customer_by_id(id) {
+    const customer = await stripe.customers.retrieve(id)
+    return customer
+}
+
+async function get_customer_by_sessionId(sessionId) {
+    // Retrieve the session data using the Stripe API
+    const session = await stripe.checkout.sessions.retrieve(sessionId);
+
+    // Use the session data as needed
+    const { customer, payment_intent } = session;
+
+    return { customer, payment_intent }
+}
+
+async function check_subscription_status(customerId) {
+    try {
+        const customer = await stripe.customers.retrieve(customerId);
+        const subscriptions = customer.subscriptions.data;
+        const activeSubscriptions = subscriptions.filter(
+            (subscription) => subscription.status === "active"
+        );
+        return activeSubscriptions.length > 0;
+    } catch (error) {
+        console.error(error);
+        return false;
+    }
+}
+
+module.exports = {
+    get_customer_by_id,
+    get_customer_by_sessionId,
+    check_subscription_status,
+};
+
 const create_checkout_session = async (customer, price) => {
     const session = await stripe.checkout.sessions.create({
         mode: "subscription",
@@ -38,11 +73,6 @@ const create_customer = async (phoneNumber) => {
     return new_customer
 }
 
-const get_customer_by_id = async (id) => {
-    const customer = await stripe.customers.retrieve(id)
-    return customer
-}
-
 const create_billing_session = async (customer) => {
     const session = await Stripe.billingPortal.sessions.create({
         customer,
@@ -59,14 +89,6 @@ const create_webhook = (rawBody, sig) => {
     )
     return event
 }
-
-module.exports = {
-    create_checkout_session,
-    create_customer,
-    get_customer_by_id,
-    create_billing_session,
-    create_webhook
-};
 
 // POST create sub
 function create_sub(err, user) {

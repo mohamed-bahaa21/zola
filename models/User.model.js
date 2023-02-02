@@ -19,8 +19,13 @@ const UserSchema = new mongoose.Schema({
         required: false,
         unique: true,
     },
+    plan: {
+        type: String,
+        enum: ['none', 'basic'],
+        default: 'none',
+        required: true
+    },
     billingID: { type: String },
-    plan: { type: String, enum: ['none', 'basic', 'pro'], default: 'none' },
     hasTrial: { type: Boolean, default: false },
     endDate: { type: Date, default: null },
     otp: {

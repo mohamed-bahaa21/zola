@@ -1,5 +1,8 @@
 const addUser = (User) => ({ phone, billingID, plan, endDate, otp }) => {
-    if (!phone || !billingID || !plan) { throw new Error('Missing Data. Please provide values for phone, billingID, plan') }
+    // if (!phone || !billingID || !plan || !endDate || !otp) { throw new Error('Missing Data. Please provide values for phone, billingID, plan') }
+    console.log(phone);
+    console.log(otp);
+    if (!phone || !otp) { throw new Error('Missing Data. Please provide values for phone number') }
 
     const user = new User({ phone, billingID, plan, endDate, otp })
     return user.save()

@@ -42,22 +42,29 @@ router.get('/verify-phone', forwardAuthenticated, function (req, res) {
 
 /* POST verify phone page. */
 router.post('/verify-phone', forwardAuthenticated, async function (req, res) {
-  let phoneNumber = req.body.phoneNumber;
+  let phone = req.body.phoneNumber;
 
   let new_otp = twilio.generateOTP();
+  
   if (new_otp) {
-    let sendOTP = sendOTP(phoneNumber, new_otp);
+    let sendOTP = twilio.sendOTP(phone, new_otp);
     if (!sendOTP) res.redirect('/verify-phone')
 
     let customer = await UserService.getUserByPhone(phone)
-    // const user = User.findOrCreate({ phoneNumber: phoneNumber, otp: new_otp.id })
-    req.session.temp_customerID = customer.id
+    // const user = User.findOrCreate({ phone: phone, otp: new_otp.id })
     req.session.new_otp = new_otp;
-    let customerInfo = {}
-
     if (!customer) {
+      let customerInfo = {}
       console.log(`phone ${phone} does not exist. Making one. `)
       try {
+        customer = await UserService.addUser({
+          phone: phone,
+          billingID: customerInfo.id,
+          plan: 'none',
+          endDate: null,
+          otp: new_otp
+        })
+
         customerInfo = await stripe.create_customer(phone, new_otp)
 
         customer = await UserService.addUser({
@@ -76,6 +83,7 @@ router.post('/verify-phone', forwardAuthenticated, async function (req, res) {
         return
       }
     } else {
+      req.session.temp_customerID = customer.id
       const isTrialExpired = customer.plan != 'none' && customer.endDate < new Date().getTime()
 
       if (isTrialExpired) {
@@ -90,9 +98,6 @@ router.post('/verify-phone', forwardAuthenticated, async function (req, res) {
           customer.endDate < new Date().getTime()
         )
       }
-
-      customerInfo = await stripe.getCustomerByID(customer.billingID)
-      console.log(`The existing ID for ${phone} is ${JSON.stringify(customerInfo)}`)
     }
 
     req.session.phone = phone
@@ -147,17 +152,20 @@ router.post("/subscripe", async (req, res) => {
 });
 
 /* GET soon. */
-const set_current_user = require('../middlewares/set_currentUser')
 router.get('/soon', forwardAuthenticated, [set_current_user, has_plan('basic')], function (req, res) {
   res.render('soon', { title: 'Zola' });
 });
 
-router.get("/success", (req, res) => {
-  res.send("Payment successful");
+router.post('/checkout/success', async (req, res) => {
+  const { sessionId } = req.query;
+
+  stripe.get_
+
+  res.send('Payment succeeded');
 });
 
-router.get("/failed", (req, res) => {
-  res.send("Payment failed");
+router.get("/checkout/failed", (req, res) => {
+  res.redirect('/')
 });
 
 // TODO:: API 
@@ -170,7 +178,7 @@ function check_private_key(req, res, next) {
   }
 }
 
-app.post('/checkout', setCurrentUser, async (req, res) => {
+router.post('/checkout', set_current_user, async (req, res) => {
   const customer = req.user
   const { product, customerID } = req.body
 
@@ -202,7 +210,7 @@ app.post('/checkout', setCurrentUser, async (req, res) => {
   }
 })
 
-app.post('/billing', set_current_user, async (req, res) => {
+router.post('/billing', set_current_user, async (req, res) => {
   const { customer } = req.body
   console.log('customer', customer)
 
@@ -212,7 +220,7 @@ app.post('/billing', set_current_user, async (req, res) => {
   res.json({ url: session.url })
 })
 
-app.post('/webhook', async (req, res) => {
+router.post('/webhook', async (req, res) => {
   let event
 
   try {
