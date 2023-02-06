@@ -7,34 +7,35 @@ const UserSchema = new mongoose.Schema({
         required: true,
         unique: true
     },
-    verified: {
-        type: Boolean,
-        required: true,
-        default: false
-    },
-    status: {
-        type: String,
-        enum: ['none', 'subed'],
-        default: 'none',
-        required: false
-    },
     otp: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'OTP',
         required: false,
     },
+    verified: {
+        type: Boolean,
+        required: true,
+        default: false
+    },
+    customerID: {
+        type: String,
+        required: false,
+        unique: true
+    },
+    subscribed: {
+        type: Boolean,
+        required: true,
+        default: false
+    },
+    last_subscription: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Subscription'
+    },
     subscriptions: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Subscription'
     }],
-    stripeId: {
-        type: String,
-        required: false,
-    },
-    plinkId: {
-        type: String,
-        required: false
-    },
+    // ===========================================================
     stripe_sessionId: {
         type: String,
         required: false
@@ -54,9 +55,7 @@ const UserSchema = new mongoose.Schema({
         default: 'none',
         required: false
     },
-    billingID: { type: String },
     hasTrial: { type: Boolean, default: false },
-    endDate: { type: Date, default: null },
     createdAt: { type: Date, default: Date.now },
     updatedAt: { type: Date, default: Date.now }
 });

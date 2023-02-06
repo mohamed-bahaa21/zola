@@ -1,35 +1,29 @@
 var express = require('express');
 var router = express.Router();
 
-const fs = require('fs');
-const moment = require('moment');
-// const mdq = require('mongo-date-query');
-const json2csv = require('json2csv').parse;
-const path = require('path')
-const fields = ['stationID', 'sessionStartTime', 'sessionEndTime', 'cookiesCount'];
-
 const User = require('../models/User.model')
-const OTP = require('../models/OTP.model')
 const twilio = require('../services/twilio')
 const stripe = require('../services/stripe')
 const UserService = require('../services/User')
 
-const has_plan = require('../middlewares/has_plan')
-const set_current_user = require('../middlewares/set_currentUser');
-const { log } = require('console');
+async function forwardAuthenticated(req, res, next) {
+  if (!req.session.customerID) {
+    return next();
+  }
+  res.redirect('/subscribe');
+}
 
-function ensureAuthenticated(req, res, next) {
+async function ensureAuthenticated(req, res, next) {
   if (req.session.customerID) {
     return next();
   }
   res.redirect('/');
 }
-
-function forwardAuthenticated(req, res, next) {
-  if (!req.session.customerID) {
-    return next();
-  }
-  res.redirect('/subscripe');
+async function ensureSubscribed(req, res, next) {
+  let userID = req.session.customerID;
+  let user = await User.findOne({ _id: userID })
+  if (!user.subscribed) return res.redirect('/subscribe')
+  res.redirect('/soon')
 }
 
 /* GET home page. */
@@ -178,15 +172,9 @@ router.post('/verify-code', async function (req, res) {
   let user = await User.findOne({ _id: temp_customerID }).populate('otp');
 
   // check if the otp expired
-  if (user.otp == null || user.otp.expires < new Date().getTime()) {
-    console.log('here 10');
-    return res.redirect('/verify-phone')
-  }
+  if (user.otp == null || user.otp.expires < new Date().getTime()) return res.redirect('/verify-phone')
   // check if the submitted token doesn't equal the otp token
-  if (submited_otp != user.otp.token) {
-    console.log('here 20');
-    return res.redirect('/verify-code')
-  }
+  if (submited_otp != user.otp.token) return res.redirect('/verify-code')
 
   if (user.verified) {
     user.otp = null;
@@ -198,58 +186,140 @@ router.post('/verify-code', async function (req, res) {
   let verified_user = await user.save();
   if (verified_user) {
     req.session.customerID = req.session.temp_customerID;
-    res.redirect('/subscripe');
+    res.redirect('/subscribe');
   } else {
     res.redirect('/')
   }
 });
 
-/* GET subscripe. */
-router.get('/subscripe', ensureAuthenticated, async function (req, res) {
+/* GET subscribe. */
+router.get('/subscribe', ensureAuthenticated, async function (req, res) {
   let userID = req.session.customerID;
 
   let user = await User.findOne({ _id: userID });
+  // if no user was found
   if (!user) return res.redirect('/')
-
-  if (user.plan == "basic") {
-    return res.redirect('/soon');
-  }
-
-  res.render('subscripe', { title: 'Zola', customerID: req.session.customerID, STRIPE_LINK: process.env.STRIPE_LINK });
+  // if user is subscribed to the basic plan
+  if (user.plan == "basic") return res.redirect('/soon');
+  // otherwise render subscribe
+  res.render('subscribe', { title: 'Zola', customerID: req.session.customerID, STRIPE_LINK: process.env.STRIPE_LINK });
 });
 
-// POST subscripe
-router.post("/subscripe", async (req, res) => {
+// POST subscribe
+router.get("/success", async (req, res) => {
   const { customerID } = req.session;
-  const session = await stripe.create_checkout_session(
-    customerID,
-    productToPriceMap.BASIC
-  );
 
-  console.log(session);
-  res.send({
-    sessionId: session.id,
+  const stripe_sessionId = req.query.session_id;
+  const stripe_session = await stripe.checkout.sessions.retrieve(stripe_sessionId);
+
+  const stripe_customerID = stripe_session.customer;
+  const plan = stripe_session.display_items[0].plan.id;
+  const startDate = new Date();
+  const endDate = new Date();
+
+  endDate.setMonth(endDate.getMonth() + 1);
+
+  const subscription = new Subscription({
+    stripe_customerID,
+    plan,
+    startDate,
+    endDate,
+  });
+
+  subscription.save((err) => {
+    if (err) {
+      console.log("Error saving subscription to database.");
+      return res.redirect('/subscribe');
+    }
+
+    console.log("Subscription saved to database.");
+    User.findOneAndUpdate({ _id: customerID }, {
+      $push: { subscriptions: subscription._id },
+      $set: {
+        subscribed: true,
+        last_subscription: subscription._id
+      }
+    }, function (error) {
+      if (error) {
+        console.log("Error updating User in database.");
+        return res.redirect('/subscribe');
+      }
+      return res.redirect('/soon');
+    });
   });
 });
 
-/* GET soon. */
-router.get('/soon', ensureAuthenticated, function (req, res) {
-  res.render('soon', { title: 'Zola' });
-});
-
-router.post('/checkout/success', async (req, res) => {
-  const { sessionId } = req.query;
-
-  stripe.get_
-
-  res.send('Payment succeeded');
-});
-
-router.get("/checkout/failed", (req, res) => {
+router.get("/failed", (req, res) => {
   res.redirect('/')
 });
 
-// TODO:: API 
+
+/* GET soon. */
+router.get('/soon', ensureAuthenticated, ensureSubscribed, function (req, res) {
+  res.render('soon', { title: 'Zola' });
+});
+
+app.post('/incoming-sms', async (req, res) => {
+  // TODO: make a messages model in DB to track each user messages
+  const sender_number = req.body.From;
+
+  let user = await User.findOne({ phone: `${sender_number}` })
+
+  if (user.verified && user.subscribed) {
+    let generated_response = await openai.generateResponse(Body);
+
+    if (generated_response) {
+      const twilio_response = new twilio.MessagingResponse();
+      twilio_response.message(generated_response);
+      res.send(twilio_response.toString());
+
+    } else {
+      console.log("Error: Couldn't generate the response.");
+      res.send()
+    }
+  } else {
+    console.log("Error: User is not verified or subscribed.");
+    res.send()
+  }
+
+  // res.writeHead(200, { "Content-Type": "text/xml" });
+  // res.end(twilio_response.toString());
+});
+
+app.post('/webhook', async (req, res) => {
+  const endpointSecret = process.env.STRIPE_WEBHOOK;
+
+  let event;
+  let signature = req.headers["stripe-signature"];
+
+  try {
+    event = stripe.webhooks.constructEvent(
+      req.rawBody,
+      signature,
+      endpointSecret
+    );
+  } catch (err) {
+    return res.status(400).send(`Webhook Error: ${err.message}`);
+  }
+
+  // case: subscription ends
+  if (event.type === "customer.subscription.deleted") {
+    // Handle the event here
+    // const subscription = event.data.object;
+    const customerID = event.data.object.customer;
+
+    let unsubscribed_user = await User.findOneAndUpdate({ customerID: customerID }, { subscribed: false })
+    if (!unsubscribed_user) {
+      console.log(`Subscription ended: ${subscription.id}`);
+      return res.status(400).send(`Webhook Error: Couldn't unsubscribe user.`);
+    }
+  }
+
+  res.json({ received: true });
+});
+
+
+// TODO:: API protection via chech_private_key
 function check_private_key(req, res, next) {
   let private_key = req.body.private_key
   if (private_key !== process.env.RSA_ENC) {
@@ -258,128 +328,5 @@ function check_private_key(req, res, next) {
     return true;
   }
 }
-
-router.post('/checkout', set_current_user, async (req, res) => {
-  const customer = req.user
-  const { product, customerID } = req.body
-
-  const price = productToPriceMap[product]
-
-  try {
-    const session = await stripe.create_checkout_session(customerID, price)
-
-    const ms =
-      new Date().getTime() + 1000 * 60 * 60 * 24 * process.env.TRIAL_DAYS
-    const n = new Date(ms)
-
-    customer.plan = product
-    customer.hasTrial = true
-    customer.endDate = n
-    customer.save()
-
-    res.send({
-      sessionId: session.id
-    })
-  } catch (e) {
-    console.log(e)
-    res.status(400)
-    return res.send({
-      error: {
-        message: e.message
-      }
-    })
-  }
-})
-
-router.post('/billing', set_current_user, async (req, res) => {
-  const { customer } = req.body
-  console.log('customer', customer)
-
-  const session = await stripe.createBillingSession(customer)
-  console.log('session', session)
-
-  res.json({ url: session.url })
-})
-
-router.post('/webhook', async (req, res) => {
-  let event
-
-  try {
-    event = stripe.create_webhook(req.body, req.header('Stripe-Signature'))
-  } catch (err) {
-    console.log(err)
-    return res.sendStatus(400)
-  }
-
-  const data = event.data.object
-
-  console.log(event.type, data)
-  switch (event.type) {
-    case 'customer.created':
-      console.log(JSON.stringify(data))
-      break
-    case 'invoice.paid':
-      break
-    case 'customer.subscription.created': {
-      const user = await UserService.getUserByBillingID(data.customer)
-
-      if (data.plan.id === process.env.PRODUCT_BASIC) {
-        console.log('You are talking about basic product')
-        user.plan = 'basic'
-      }
-
-      if (data.plan.id === process.env.PRODUCT_PRO) {
-        console.log('You are talking about pro product')
-        user.plan = 'pro'
-      }
-
-      user.hasTrial = true
-      user.endDate = new Date(data.current_period_end * 1000)
-
-      await user.save()
-
-      break
-    }
-    case 'customer.subscription.updated': {
-      // started trial
-      const user = await UserService.getUserByBillingID(data.customer)
-
-      if (data.plan.id == process.env.PRODUCT_BASIC) {
-        console.log('You are talking about basic product')
-        user.plan = 'basic'
-      }
-
-      if (data.plan.id === process.env.PRODUCT_PRO) {
-        console.log('You are talking about pro product')
-        user.plan = 'pro'
-      }
-
-      const isOnTrial = data.status === 'trialing'
-
-      if (isOnTrial) {
-        user.hasTrial = true
-        user.endDate = new Date(data.current_period_end * 1000)
-      } else if (data.status === 'active') {
-        user.hasTrial = false
-        user.endDate = new Date(data.current_period_end * 1000)
-      }
-
-      if (data.canceled_at) {
-        // cancelled
-        console.log('You just canceled the subscription' + data.canceled_at)
-        user.plan = 'none'
-        user.hasTrial = false
-        user.endDate = null
-      }
-      console.log('actual', user.hasTrial, data.current_period_end, user.plan)
-
-      await user.save()
-      console.log('customer changed', JSON.stringify(data))
-      break
-    }
-    default:
-  }
-  res.sendStatus(200)
-})
 
 module.exports = router;

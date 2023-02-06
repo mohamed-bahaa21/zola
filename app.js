@@ -33,8 +33,8 @@ if (process.env.ENVIRONMENT == 'production') {
 } else {
   app.use(logger('dev'));
 }
-let bodyParser = require('body-parser')
-app.use('/webhook', bodyParser.raw({ type: 'application/json' }))
+// let bodyParser = require('body-parser')
+// app.use('/webhook', bodyParser.raw({ type: 'application/json' }))
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 // app.use(cookieParser());

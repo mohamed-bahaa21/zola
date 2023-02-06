@@ -26,7 +26,6 @@ function generateOTP() {
     const expires = new Date();
     expires.setMinutes(expires.getMinutes() + 30);
 
-    // console.log(typeof secret);
     const new_otp = new OTP({ sent: false, secret: secret, token: token6digits, expires: expires });
     new_otp.save();
 
@@ -51,10 +50,8 @@ async function sendOTP(phone, otp) {
 }
 
 function verifyOTP(userEnteredToken, secret) {
-    console.log("heeeeeeeeeeeeeeeeeeeeeeere verifyOTP");
     const userEnteredToken6digits = Math.floor(userEnteredToken % 1000000)
-    console.log(secret);
-    console.log("userEnteredToken6digits ", userEnteredToken6digits);
+
     const verified = speakeasy.totp.verify({
         secret: secret.base32,
         encoding: 'base32',
@@ -71,48 +68,6 @@ When the user inputs the OTP,
 retrieve the stored OTP from the database and compare it with the user's input. 
 If they match, set the user's verification flag to true and log them in.
 */
-
-const { Configuration, OpenAIApi } = require('openai');
-
-const configuration = new Configuration({
-    apiKey: process.env.OPENAI_API_KEY,
-});
-const openai = new OpenAIApi(configuration);
-
-// const completion = await openai.createCompletion({
-//     model: "text-davinci-003",
-//     prompt: "Hello world",
-// });
-
-async function generateResponse(prompt) {
-    const response = await openai.promised.engines.run({
-        engine: 'davinci',
-        prompt: prompt,
-    });
-
-    return response.choices[0].text;
-}
-
-async function sendMSG(customer_subscription_status, customer_msg, customer_phone) {
-    if (customer_subscription_status) {
-        const response = await generateResponse(customer_msg);
-
-        client.messages.create({
-            body: `${response}`,
-            from: process.env.TWILIO_PHONE_NUMBER,
-            to: customer_phone
-        })
-            .then(message => {
-                console.log(message.sid)
-                return true;
-            })
-            .catch(err => {
-                return false;
-            });
-    } else {
-        return false;
-    }
-}
 
 module.exports = {
     generateOTP,

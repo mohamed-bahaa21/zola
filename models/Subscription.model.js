@@ -1,22 +1,14 @@
 const mongoose = require('mongoose');
 
 const subscriptionSchema = new mongoose.Schema({
-    stripeId: {
-        type: String,
-        required: true,
-    },
-    plan: {
-        type: String,
-        required: true,
-    },
-    status: {
-        type: String,
-        required: true,
-    },
+    stripe_customerID: String,
+    plan: String,
+    startDate: Date,
+    endDate: Date,
     user: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'
-    }
+    },
 });
 
 const Subscription = mongoose.model('Subscription', subscriptionSchema);
