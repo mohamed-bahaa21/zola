@@ -26,29 +26,35 @@ function generateOTP() {
     const expires = new Date();
     expires.setMinutes(expires.getMinutes() + 30);
 
-    const new_otp = new OTP({ token: token6digits, expires: expires });
+    // console.log(typeof secret);
+    const new_otp = new OTP({ sent: false, secret: secret, token: token6digits, expires: expires });
     new_otp.save();
 
     return new_otp;
 }
 
-function sendOTP(phoneNumber, otp) {
-    client.messages.create({
+async function sendOTP(phone, otp) {
+
+    // only for development purposes.
+    // also make sure you enabled Messaging Geo-Permissions settings in Twilio account.
+    return true;
+
+    let sent_msg = await client.messages.create({
         body: `Your OTP is ${otp}`,
         from: process.env.TWILIO_PHONE_NUMBER,
-        to: phoneNumber
+        to: phone
     })
-        .then(message => {
-            console.log(message.sid)
-            return true;
-        })
-        .catch(err => {
-            return false;
-        });
+
+    console.log(sent_msg.sid)
+    console.log(sent_msg);
+    return sent_msg
 }
 
-function verifyOTP(userEnteredToken) {
+function verifyOTP(userEnteredToken, secret) {
+    console.log("heeeeeeeeeeeeeeeeeeeeeeere verifyOTP");
     const userEnteredToken6digits = Math.floor(userEnteredToken % 1000000)
+    console.log(secret);
+    console.log("userEnteredToken6digits ", userEnteredToken6digits);
     const verified = speakeasy.totp.verify({
         secret: secret.base32,
         encoding: 'base32',

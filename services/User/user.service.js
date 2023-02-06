@@ -1,10 +1,10 @@
-const addUser = (User) => ({ phone, billingID, plan, endDate, otp }) => {
+const addUser = (User) => ({ phone, billingID, plan, endDate, otp, verified }) => {
     // if (!phone || !billingID || !plan || !endDate || !otp) { throw new Error('Missing Data. Please provide values for phone, billingID, plan') }
     console.log(phone);
     console.log(otp);
-    if (!phone || !otp) { throw new Error('Missing Data. Please provide values for phone number') }
+    if (!phone) { throw new Error('Missing Data. Please provide values for phone number') }
 
-    const user = new User({ phone, billingID, plan, endDate, otp })
+    const user = new User({ phone, billingID, plan, endDate, otp, verified })
     return user.save()
 }
 
@@ -13,7 +13,7 @@ const getUsers = (User) => () => {
 }
 
 const getUserByPhone = (User) => async (phone) => {
-    return await User.findOne({ phoneNumber: phone })
+    return await User.findOne({ phone: phone }).populate('otp')
 }
 
 const getUserByBillingID = (User) => async (billingID) => {
