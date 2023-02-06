@@ -1,1 +1,1 @@
-heroku: npm run prod
+heroku: npm run dev
