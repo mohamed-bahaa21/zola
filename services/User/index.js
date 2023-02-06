@@ -1,4 +1,4 @@
 const User = require('../../models/User.model')
-const UserService = require('./User.service')
+const UserService = require('./user.service')
 
 module.exports = UserService(User)
