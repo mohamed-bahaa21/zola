@@ -15,7 +15,7 @@
         "has_more": false,
         "url": "/v1/charges?payment_intent=pi_1HJbGrL6Ny34PpD0cbXzCDFK"
     },
-    "client_secret": "pi_1HJbGrL6Ny34PpD0cbXzCDFK_secret_WjKvw0nYUJmSpUcXFmIyvKL1N",
+    "client_secret": "",
     "confirmation_method": "automatic",
     "created": 1622756033,
     "currency": "usd",
