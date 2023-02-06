@@ -259,7 +259,7 @@ router.get('/soon', ensureAuthenticated, ensureSubscribed, function (req, res) {
   res.render('soon', { title: 'Zola' });
 });
 
-app.post('/incoming-sms', async (req, res) => {
+router.post('/incoming-sms', async (req, res) => {
   // TODO: make a messages model in DB to track each user messages
   const sender_number = req.body.From;
 
@@ -286,7 +286,7 @@ app.post('/incoming-sms', async (req, res) => {
   // res.end(twilio_response.toString());
 });
 
-app.post('/webhook', async (req, res) => {
+router.post('/webhook', async (req, res) => {
   const endpointSecret = process.env.STRIPE_WEBHOOK;
 
   let event;
